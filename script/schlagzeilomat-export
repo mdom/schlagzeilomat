@@ -15,9 +15,6 @@ if ( !-e $config_file ) {
 
 my $config = decode_json $config_file->slurp;
 
-use Data::Dumper;
-warn Dumper $config;
-
 my $twitter = Mojo::WebService::Twitter->new(
     api_key    => $config->{api_key},
     api_secret => $config->{api_secret_key},
