@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use Mojo::Base -base;
+use Mojo::WebService::Twitter;
+use Mojo::SQLite;
+use Mojo::File 'path';
+use Mojo::JSON 'decode_json';
+use Encode;
+
+my $config_file = path('schlagzeilomat.json');
+
+if ( !-e $config_file ) {
+    die "Missing configuration file $config_file\n";
+}
+
+my $config = decode_json $config_file->slurp;
+
+use Data::Dumper;
+warn Dumper $config;
+
+my $twitter = Mojo::WebService::Twitter->new(
+    api_key    => $config->{api_key},
+    api_secret => $config->{api_secret_key},
+);
+my $sql = Mojo::SQLite->new('sqlite:test.db');
+
+$twitter->authentication(
+    oauth => $config->{access_token},
+    $config->{access_token_secret},
+);
+
+my @items = $sql->db->query(
+    'select * from items where published = 0 order by id limit 1 ')
+  ->hashes->each;
+
+for my $item (@items) {
+    $twitter->post_tweet( $item->{title} . " " . $item->{link} );
+    warn encode( 'UTF-8', "Publish " . $item->{title} . "\n" );
+    $sql->db->update( items => { published => 1 }, { id => $item->{id} } );
+}
+
+exit 0;
