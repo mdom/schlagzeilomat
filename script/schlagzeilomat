@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
 use Mojo::Base -base;
-use Mojo::WebService::Twitter;
+use Mojo::Feed;
 use Mojo::SQLite;
+use Mojo::WebService::Twitter;
 use Mojo::File 'path';
 use Mojo::JSON 'decode_json';
 use Encode;
+
 
 my $config_file = path('schlagzeilomat.json');
 
@@ -15,11 +17,34 @@ if ( !-e $config_file ) {
 
 my $config = decode_json $config_file->slurp;
 
+my $sql = Mojo::SQLite->new('sqlite:test.db');
+$sql->migrations->from_string(<<EOF)->migrate;
+  -- 1 up
+	create table items (
+		id integer primary key autoincrement,
+		guid text unique,
+		published integer default 0,
+		title text not null,
+		link text not null
+	);
+  -- 1 down
+	drop table items;
+EOF
+
+for my $url ( @{ $config->{feeds} } ) {
+    $feed = Mojo::Feed->new( url => $url );
+
+    for my $item ( $feed->items->reverse->each ) {
+        $sql->db->query(
+            'insert or ignore into items (guid, title, link) values (?,?,?)',
+            $item->id, $item->title, $item->link );
+    }
+}
+
 my $twitter = Mojo::WebService::Twitter->new(
     api_key    => $config->{api_key},
     api_secret => $config->{api_secret_key},
 );
-my $sql = Mojo::SQLite->new('sqlite:test.db');
 
 $twitter->authentication(
     oauth => $config->{access_token},
