@@ -8,9 +8,17 @@ use Mojo::File 'path';
 use Mojo::JSON 'decode_json';
 use Encode;
 use Fcntl qw(:flock);
+use Getopt::Long;
+use Pod::Usage;
 
 open my $lock_file, '<', $0 or die $!;
 flock $lock_file, LOCK_EX | LOCK_NB or die "Unable to lock file $0: $!\n";
+
+my $options = { import => 1, publish => 1, dry_run => 0 };
+GetOptions( $options, 'import!', 'publish!', 'dry_run|dry-run|n', 'help' )
+  or pod2usage(1);
+
+pod2usage(1) if $options->{help};
 
 my $config_file = path('schlagzeilomat.json');
 
@@ -34,34 +42,85 @@ $sql->migrations->from_string(<<EOF)->migrate;
 	drop table items;
 EOF
 
-for my $url ( @{ $config->{feeds} } ) {
-    $feed = Mojo::Feed->new( url => $url );
+if ( $options->{import} ) {
+    for my $url ( @{ $config->{feeds} } ) {
+        my $feed = Mojo::Feed->new( url => $url );
 
-    for my $item ( $feed->items->reverse->each ) {
-        $sql->db->query(
-            'insert or ignore into items (guid, title, link) values (?,?,?)',
-            $item->id, $item->title, $item->link );
+        for my $item ( $feed->items->reverse->each ) {
+            $sql->db->query(
+                q{ insert or ignore into items 
+						(guid, title, link) values (?,?,?) },
+                $item->id, $item->title, $item->link
+            );
+        }
     }
 }
 
-my $twitter = Mojo::WebService::Twitter->new(
-    api_key    => $config->{api_key},
-    api_secret => $config->{api_secret_key},
-);
+if ( $options->{publish} ) {
 
-$twitter->authentication(
-    oauth => $config->{access_token},
-    $config->{access_token_secret},
-);
+    my $twitter = Mojo::WebService::Twitter->new(
+        api_key    => $config->{api_key},
+        api_secret => $config->{api_secret_key},
+    );
 
-my @items = $sql->db->query(
-    'select * from items where published = 0 order by id limit 1 ')
-  ->hashes->each;
+    $twitter->authentication(
+        oauth => $config->{access_token},
+        $config->{access_token_secret},
+    );
 
-for my $item (@items) {
-    $twitter->post_tweet( $item->{title} . " " . $item->{link} );
-    warn encode( 'UTF-8', "Publish " . $item->{title} . "\n" );
-    $sql->db->update( items => { published => 1 }, { id => $item->{id} } );
+    my @items = $sql->db->query(
+        'select * from items where published = 0 order by id limit 1 ')
+      ->hashes->each;
+
+    for my $item (@items) {
+        if ( !$options->{dry_run} ) {
+            $twitter->post_tweet( $item->{title} . " " . $item->{link} );
+            $sql->db->update(
+                items => { published => 1 },
+                { id => $item->{id} }
+            );
+        }
+        warn encode( 'UTF-8', qq{Publish "$item->{title}"\n} );
+    }
 }
 
 exit 0;
+
+__END__
+
+=head1 NAME
+
+schlagzeilomat - Publish rss feeds to twitter
+
+=head1 SYNOPSIS
+
+schlagzeilomat [options]
+
+=head1 OPTIONS
+
+=over
+
+=item --[no-]publish
+
+Publish unpublished items to twitter. [default: true]
+
+=item --[no-]import
+
+Import RSS feeds. [default: true]
+
+=item --dry-run
+
+Print items to stderr.
+
+=item --help
+
+Show this help.
+
+=back
+
+=head1 DESCRIPTION
+
+B<schlagzeilomat> will import RSS feeds and publish their items to
+twitter.
+
+=cut
