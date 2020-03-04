@@ -1,0 +1,10 @@
+requires 'Mojolicious';
+requires 'Mojo::Feed';
+requires 'Mojo::SQLite';
+requires 'Mojo::WebService::Twitter';
+requires 'Encode';
+requires 'Fcntl';
+requires 'Getopt::Long';
+requires 'Pod::Usage';
+requires 'FindBin';
+requires 'lib';
