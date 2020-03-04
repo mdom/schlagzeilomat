@@ -79,7 +79,7 @@ if ( $options->{publish} ) {
       ->hashes->each;
 
     for my $item (@items) {
-        my $msg = encode( 'UTF-8', $item->{title} . " " . $item->{link} );
+        my $msg = $item->{title} . " " . $item->{link};
         if ( !$options->{dry_run} ) {
             eval { $twitter->post_tweet($msg) };
             if ($@) {
@@ -91,7 +91,7 @@ if ( $options->{publish} ) {
                 { id => $item->{id} }
             );
         }
-        warn qq{Publish "$msg"\n};
+        warn encode( 'UTF-8', qq{Publish "$msg"\n} );
     }
 }
 
