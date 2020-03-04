@@ -10,6 +10,8 @@ use Encode;
 use Fcntl qw(:flock);
 use Getopt::Long;
 use Pod::Usage;
+use FindBin qw($Bin);
+use lib "$Bin/../local";
 
 open my $lock_file, '<', $0 or die $!;
 flock $lock_file, LOCK_EX | LOCK_NB or die "Unable to lock file $0: $!\n";
