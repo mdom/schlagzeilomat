@@ -38,7 +38,7 @@ my $sql = Mojo::SQLite->new->from_filename( $config->{db_file} );
 $sql->migrations->from_string(<<EOF)->migrate;
   -- 1 up
 	create table items (
-		id integer primary key autoincrement,
+		id integer primary key,
 		guid text unique,
 		published integer default 0,
 		title text not null,
