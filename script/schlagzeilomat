@@ -75,14 +75,19 @@ if ( $options->{publish} ) {
       ->hashes->each;
 
     for my $item (@items) {
+        my $msg = encode( 'UTF-8', $item->{title} . " " . $item->{link} );
         if ( !$options->{dry_run} ) {
-            $twitter->post_tweet( $item->{title} . " " . $item->{link} );
+            eval { $twitter->post_tweet($msg) };
+            if ($@) {
+                warn $@->to_string;
+                next;
+            }
             $sql->db->update(
                 items => { published => 1 },
                 { id => $item->{id} }
             );
         }
-        warn encode( 'UTF-8', qq{Publish "$item->{title}"\n} );
+        warn qq{Publish "$msg"\n};
     }
 }
 
