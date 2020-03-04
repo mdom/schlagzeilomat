@@ -17,7 +17,7 @@ open my $lock_file, '<', $0 or die $!;
 flock $lock_file, LOCK_EX | LOCK_NB or die "Unable to lock file $0: $!\n";
 
 my $options = { import => 1, publish => 1, dry_run => 0 };
-GetOptions( $options, 'import!', 'publish!', 'dry_run|dry-run|n', 'help' )
+GetOptions( $options, 'import!', 'publish!', 'verbose|v', 'help' )
   or pod2usage(1);
 
 pod2usage(1) if $options->{help};
@@ -80,18 +80,18 @@ if ( $options->{publish} ) {
 
     for my $item (@items) {
         my $msg = $item->{title} . " " . $item->{link};
-        if ( !$options->{dry_run} ) {
-            eval { $twitter->post_tweet($msg) };
-            if ($@) {
-                warn $@->to_string;
-                next;
-            }
-            $sql->db->update(
-                items => { published => 1 },
-                { id => $item->{id} }
-            );
+        eval { $twitter->post_tweet($msg) };
+        if ($@) {
+            warn $@->to_string;
+            next;
         }
-        warn encode( 'UTF-8', qq{Publish "$msg"\n} );
+        $sql->db->update(
+            items => { published => 1 },
+            { id => $item->{id} }
+        );
+        if ( $options->{verbose} ) {
+            warn encode( 'UTF-8', qq{Publish "$msg"\n} );
+        }
     }
 }
 
@@ -119,9 +119,9 @@ Publish unpublished items to twitter. [default: true]
 
 Import RSS feeds. [default: true]
 
-=item --dry-run
+=item --verbose
 
-Print items to stderr.
+Print more information.
 
 =item --help
 
