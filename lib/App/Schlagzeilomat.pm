@@ -12,6 +12,8 @@ use Fcntl qw(:flock);
 use Getopt::Long 'GetOptionsFromArray';
 use Pod::Usage;
 
+our $VERSION = '1.00';
+
 has run_import  => 1;
 has run_publish => 1;
 has verbose     => 0;
