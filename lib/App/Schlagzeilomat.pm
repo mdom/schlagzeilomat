@@ -181,6 +181,34 @@ Show this help.
 
 =back
 
+=head1 CONFIGURATION FILE
+
+The configuration must contain a valid json hash. The following keys are supported and required:
+
+=over
+
+=item * api_key
+
+The bots api_key.
+
+=item * api_secret
+
+The bots api_secret.
+
+=item * access_token
+
+The accounts access token secret.
+
+=item * access_token_secret
+
+The accounts access token secret.
+
+=item * db_file
+
+The filename of the sqlite database.
+
+=back
+
 =head1 COPYRIGHT AND LICENSE 
 
 Copyright 2020 Mario Domgoergen C<< <mario@domgoergen.com> >> 

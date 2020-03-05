@@ -34,6 +34,30 @@ example.
 
     Show this help.
 
+# CONFIGURATION FILE
+
+The configuration must contain a valid json hash. The following keys are supported and required:
+
+- api\_key
+
+    The bots api\_key.
+
+- api\_secret
+
+    The bots api\_secret.
+
+- access\_token
+
+    The accounts access token secret.
+
+- access\_token\_secret
+
+    The accounts access token secret.
+
+- db\_file
+
+    The filename of the sqlite database.
+
 # COPYRIGHT AND LICENSE 
 
 Copyright 2020 Mario Domgoergen `<mario@domgoergen.com>` 
