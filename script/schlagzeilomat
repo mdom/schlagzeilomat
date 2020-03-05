@@ -13,9 +13,6 @@ use Fcntl qw(:flock);
 use Getopt::Long;
 use Pod::Usage;
 
-open my $lock_file, '<', $0 or die $!;
-flock $lock_file, LOCK_EX | LOCK_NB or die "Unable to lock file $0: $!\n";
-
 my $options = { import => 1, publish => 1, dry_run => 0 };
 GetOptions( $options, 'import!', 'publish!', 'verbose|v', 'help' )
   or pod2usage(1);
@@ -27,6 +24,10 @@ my $config_file = path('schlagzeilomat.json');
 if ( !-e $config_file ) {
     die "$0: Missing configuration file $config_file.\n";
 }
+
+open my $lock_file, '<', $config_file or die $!;
+flock $lock_file, LOCK_EX | LOCK_NB
+  or die "Unable to lock file $config_file: $!\n";
 
 my $config = decode_json $config_file->slurp;
 
@@ -133,8 +134,9 @@ Show this help.
 
 =head1 DESCRIPTION
 
-B<schlagzeilomat> will import RSS feeds and publish their items to
-twitter.
+B<schlagzeilomat> will import RSS feeds and publish it twitter. Only the
+title and link will be sent. See L<https://twitter.com/taz_news> for an
+example.
 
 =head1 COPYRIGHT AND LICENSE 
 
