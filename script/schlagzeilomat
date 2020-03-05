@@ -13,13 +13,18 @@ use Fcntl qw(:flock);
 use Getopt::Long;
 use Pod::Usage;
 
-my $options = { import => 1, publish => 1, dry_run => 0 };
-GetOptions( $options, 'import!', 'publish!', 'verbose|v', 'help' )
+my $options = {
+    import  => 1,
+    publish => 1,
+    dry_run => 0,
+    config  => 'schlagzeilomat.json',
+};
+GetOptions( $options, 'import!', 'publish!', 'verbose|v', 'help', 'config|c=s' )
   or pod2usage(1);
 
 pod2usage(1) if $options->{help};
 
-my $config_file = path('schlagzeilomat.json');
+my $config_file = path( $options->{config} );
 
 if ( !-e $config_file ) {
     die "$0: Missing configuration file $config_file.\n";
@@ -125,6 +130,10 @@ Import RSS feeds. [default: true]
 =item --verbose
 
 Print more information.
+
+=item --config FILE
+
+Set configuration file. Defaults to I<schlagzeilomat.json>.
 
 =item --help
 
