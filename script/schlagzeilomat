@@ -34,6 +34,8 @@ if ( !exists $config->{db_file} ) {
     die "$0: Missing configuration parameter db_file.\n";
 }
 
+$config->{max_items} ||= 1;
+
 my $sql = Mojo::SQLite->new->from_filename( $config->{db_file} );
 $sql->migrations->from_string(<<EOF)->migrate;
   -- 1 up
@@ -75,8 +77,8 @@ if ( $options->{publish} ) {
     );
 
     my @items = $sql->db->query(
-        'select * from items where published = 0 order by id limit 1 ')
-      ->hashes->each;
+        'select * from items where published = 0 order by id limit ? ',
+        $config->{max_items} )->hashes->each;
 
     for my $item (@items) {
         my $msg = $item->{title} . " " . $item->{link};
