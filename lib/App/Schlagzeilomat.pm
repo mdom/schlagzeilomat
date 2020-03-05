@@ -118,7 +118,7 @@ sub publish {
 
     my @items = $self->sql->db->query(
         'select * from items where published = 0 order by id limit ? ',
-        $self->{max_items} )->hashes->each;
+        $self->max_items )->hashes->each;
 
     for my $item (@items) {
         my $msg = $item->{title} . " " . $item->{link};
