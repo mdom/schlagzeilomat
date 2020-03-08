@@ -45,7 +45,8 @@ sub run {
     my ( $self, @argv ) = @_;
     my $options = {};
     GetOptionsFromArray( \@argv, $options, 'run_import|import!',
-        'run_publish|publish!', 'verbose|v', 'help', 'config|c=s' )
+        'run_publish|publish!', 'verbose|v', 'help', 'config|c=s',
+        'max_items|max-items=i' )
       or pod2usage(1);
 
     for my $key ( keys %$options ) {
@@ -180,6 +181,10 @@ Import RSS feeds. [default: true]
 
 Print more information.
 
+=items max-items NUM
+
+Maximal number of items to publish in a single run.
+
 =item --config FILE
 
 Set configuration file. Defaults to I<schlagzeilomat.json>.
@@ -215,6 +220,10 @@ The accounts access token secret.
 =item * db_file
 
 The filename of the sqlite database.
+
+=items * max-items
+
+Maximal number of items to publish in a single run.
 
 =back
 
