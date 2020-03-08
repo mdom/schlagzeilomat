@@ -67,7 +67,7 @@ sub run {
     my $config = decode_json $config_file->slurp;
 
     for my $key ( keys %$config ) {
-        if ( $self->can($key) ) {
+        if ( $self->can($key) && not exists $self->{$key} ) {
             $self->$key( $config->{$key} );
         }
     }
