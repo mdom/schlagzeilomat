@@ -37,18 +37,7 @@ has sql => sub {
     }
 
     my $sql = Mojo::SQLite->new->from_filename( $self->db_file );
-    $sql->migrations->from_string(<<EOF)->migrate;
-  -- 1 up
-	create table items (
-		id integer primary key,
-		guid text unique,
-		published integer default 0,
-		title text not null,
-		link text not null
-	);
-  -- 1 down
-	drop table items;
-EOF
+    $sql->migrations->from_data->migrate;
     return $sql;
 };
 
@@ -138,6 +127,22 @@ sub publish {
 }
 
 1;
+
+__DATA__
+
+@@ migrations
+
+-- 1 up
+create table items (
+	id integer primary key,
+	guid text unique,
+	published integer default 0,
+	title text not null,
+	link text not null
+);
+
+-- 1 down
+drop table items;
 
 __END__
 
