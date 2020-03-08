@@ -106,15 +106,17 @@ sub publish {
         $self->{access_token_secret},
     );
 
-        'select * from items where published = 0 order by id limit ? ',
-        $self->max_items )->hashes->each;
     my @items = $db->query(
+'select * from items where published = 0 and skipped = 0 order by id limit ? ',
+        $self->max_items
+    )->hashes->each;
 
     for my $item (@items) {
         my $msg = $item->{title} . " " . $item->{link};
         eval { $twitter->post_tweet($msg) };
         if ($@) {
             warn $@->to_string;
+            $db->update( items => { skipped => 1 }, { id => $item->{id} } );
             next;
         }
         $db->update( items => { published => 1 }, { id => $item->{id} } );
@@ -129,6 +131,10 @@ sub publish {
 __DATA__
 
 @@ migrations
+
+-- 2 up
+
+alter table items add column skipped integer default 0;
 
 -- 1 up
 create table items (
