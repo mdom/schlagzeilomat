@@ -95,6 +95,7 @@ sub import_feeds {
 
 sub publish {
     my $self    = shift;
+    my $db      = $self->sql->db;
     my $twitter = Mojo::WebService::Twitter->new(
         api_key    => $self->api_key,
         api_secret => $self->api_secret,
@@ -105,9 +106,9 @@ sub publish {
         $self->{access_token_secret},
     );
 
-    my @items = $self->sql->db->query(
         'select * from items where published = 0 order by id limit ? ',
         $self->max_items )->hashes->each;
+    my @items = $db->query(
 
     for my $item (@items) {
         my $msg = $item->{title} . " " . $item->{link};
@@ -116,10 +117,7 @@ sub publish {
             warn $@->to_string;
             next;
         }
-        $self->sql->db->update(
-            items => { published => 1 },
-            { id => $item->{id} }
-        );
+        $db->update( items => { published => 1 }, { id => $item->{id} } );
         if ( $self->verbose ) {
             warn encode( 'UTF-8', qq{Publish "$msg"\n} );
         }
