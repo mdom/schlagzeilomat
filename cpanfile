@@ -1,7 +1,7 @@
 requires 'Mojolicious';
 requires 'Mojo::Feed';
 requires 'Mojo::SQLite';
-requires 'Mojo::WebService::Twitter';
+requires 'Mojo::WebService::Twitter', '1.001';
 requires 'Encode';
 requires 'Fcntl';
 requires 'Getopt::Long';
